@@ -10,4 +10,8 @@ object Constants {
     val DEFAULT_CITY = "New York"
     val DEFAULT_LAT_LONG= Pair(43.7001, -79.4163)
 
+    //SharedPreference Keys
+    const val MY_SHARED_PREFERENCES = "mySharedPreferences"
+    const val SAVED_CITY_KEY = "saveCityKey"
+
 }

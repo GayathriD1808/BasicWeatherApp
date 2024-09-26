@@ -17,6 +17,7 @@ loggingInterceptor = "4.12.0"
 mockitoCore = "5.8.0"
 mockitoKotlin = "2.2.0"
 kotlinCoroutineTest = "1.6.4"
+preferenceKtx = "1.2.1"
 retrofit = "2.11.0"
 serialization = "1.6.3"
 hiltVersion = "2.51.1"
@@ -31,6 +32,7 @@ constraintlayoutCompose = "1.0.1"
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
 androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
+androidx-preference-ktx = { module = "androidx.preference:preference-ktx", version.ref = "preferenceKtx" }
 androidx-ui = { group = "androidx.compose.ui", name = "ui" }
 androidx-ui-graphics = { group = "androidx.compose.ui", name = "ui-graphics" }
 androidx-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling", version.ref = "uiTooling" }

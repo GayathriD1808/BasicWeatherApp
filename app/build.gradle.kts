@@ -82,6 +82,9 @@ dependencies {
     //image loading
     implementation(libs.coil.compose)
 
+    //sharedPreferences
+    implementation(libs.androidx.preference.ktx)
+
     //testing
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

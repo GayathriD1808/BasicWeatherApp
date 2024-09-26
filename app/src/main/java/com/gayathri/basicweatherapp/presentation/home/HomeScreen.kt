@@ -52,6 +52,7 @@ import com.gayathri.basicweatherapp.R
 import com.gayathri.basicweatherapp.utils.Constants
 import com.gayathri.basicweatherapp.presentation.ErrorView
 import com.gayathri.basicweatherapp.presentation.LoadingView
+import com.gayathri.basicweatherapp.viewmodel.HomeViewModel
 
 @Composable
 fun HomeScreen() {
