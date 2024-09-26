@@ -1,21 +1,16 @@
 <resources>
     <string name="app_name">BasicWeatherApp</string>
 
-
+    <!-- Content Description-->
     <string name="lbl_cd_back">Back</string>
     <string name="lbl_cd_search">Search</string>
     <string name="lbl_cd_location">Location</string>
     <string name="lbl_cd_temperature">Temperature</string>
 
-
     <!-- Home Activity-->
     <string name="lbl_title_details_screen">Weather Details</string>
     <string name="lbl_now">Now</string>
     <string name="lbl_current_temp_format">High: %s°, Low: %s°</string>
-    <string name="lbl_current_feel_like_temp_format">Feels like %s°</string>
-    <string name="lbl_weekly_forecast">Weekly Forecast (%s)</string>
-    <string name="lbl_today">Today</string>
-    <string name="msg_validation_error_coordinates">Please enter valid Coordinate (ex. latitude, longitude) </string>
 
     <!-- Api Errors-->
     <string name="msg_api_error_no_data_available">No data available</string>

@@ -1,10 +1,13 @@
 package com.gayathri.basicweatherapp.presentation.home
 
-import com.gayathri.basicweatherapp.data.model.Main
-import com.gayathri.basicweatherapp.data.model.Weather
+import com.gayathri.basicweatherapp.data.model.WeatherData
+import com.gayathri.basicweatherapp.utils.UiText
 
 data class HomeScreenState(
-    val weatherInfo: Weather? = null,
-    val cityName: String? = null,
-    val main: Main? = null
+    val isLoading: Boolean = false,
+    val isValidSearch: Boolean = false,
+    val searchedText: String = "",
+    val weatherInfo: WeatherData? = null,
+    val needRetryScreen: Boolean = true,
+    val error: UiText? = null
 )

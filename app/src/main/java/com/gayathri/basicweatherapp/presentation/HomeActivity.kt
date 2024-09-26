@@ -1,4 +1,4 @@
-package com.gayathri.basicweatherapp
+package com.gayathri.basicweatherapp.presentation
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -9,24 +9,23 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import com.gayathri.basicweatherapp.presentation.home.HomeScreen
-import com.gayathri.basicweatherapp.presentation.home.HomeScreenPreview
-import dagger.hilt.android.AndroidEntryPoint
+import com.gayathri.basicweatherapp.WeatherApp
 import com.gayathri.basicweatherapp.ui.theme.BasicWeatherAppTheme
+import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class MainActivity : ComponentActivity() {
+class HomeActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         setContent {
-            BasicWeatherAppTheme {
+            BasicWeatherAppTheme{
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    HomeScreen()
+                    WeatherApp()
                 }
             }
         }
@@ -38,6 +37,6 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun GreetingPreview() {
     BasicWeatherAppTheme {
-        HomeScreen()
+        WeatherApp()
     }
 }

@@ -1,6 +1,6 @@
 package com.gayathri.basicweatherapp.presentation.home
 
-import androidx.compose.foundation.Image
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -35,7 +35,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.PlatformTextStyle
 import androidx.compose.ui.text.input.KeyboardType
@@ -47,41 +46,64 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
-import com.gayathri.basicweatherapp.R
-import com.gayathri.basicweatherapp.data.model.Main
-import com.gayathri.basicweatherapp.data.model.Weather
+import com.gayathri.basicweatherapp.data.model.WeatherData
 import com.gayathri.basicweatherapp.ui.theme.BasicWeatherAppTheme
-import com.gayathri.basicweatherapp.utils.Constants.GEO_BASE_URL
-import com.gayathri.basicweatherapp.viewmodel.WeatherViewModel
+import com.gayathri.basicweatherapp.R
+import com.gayathri.basicweatherapp.utils.Constants
+import com.gayathri.basicweatherapp.presentation.ErrorView
+import com.gayathri.basicweatherapp.presentation.LoadingView
 
 @Composable
 fun HomeScreen() {
-    val viewModel: WeatherViewModel = hiltViewModel()
+    val viewModel: HomeViewModel = hiltViewModel()
     val homeScreenState by viewModel.homeScreenState.collectAsStateWithLifecycle()
 
     HomeScreenBody(
         state = homeScreenState,
-        onSearchClicked = { viewModel.searchCities(it) }
+        onSearchClicked = { viewModel.searchCityAndGetWeather(it) },
+        onTextChanged = { viewModel.onTextChanged(it) },
+        onRetry = { viewModel.onRetry() }
     )
 }
 
 @Composable
 fun HomeScreenBody(
     state: HomeScreenState,
-    onSearchClicked: (String) -> Unit
+    onSearchClicked: (String) -> Unit,
+    onTextChanged: (String) -> Unit,
+    onRetry: () -> Unit
 ) {
 
-    if (state != null) {
+    if (state.weatherInfo != null) {
         WeatherInfo(
-            weatherInfo = state,
+            weatherInfo = state.weatherInfo,
+            searchedText = state.searchedText,
+            isValidSearch = state.isValidSearch,
+            onTextChanged = onTextChanged,
             onSearchClicked = onSearchClicked
         )
+    }
+
+    if (state.error != null) {
+        val context = LocalContext.current
+        if (state.needRetryScreen) {
+            ErrorView(errorMessage = state.error.asString(), onRetry = onRetry)
+        } else {
+            Toast.makeText(context, state.error.asString(), Toast.LENGTH_LONG).show()
+        }
+    }
+
+    if (state.isLoading) {
+        LoadingView()
     }
 }
 
 @Composable
 fun WeatherInfo(
-    weatherInfo: HomeScreenState,
+    weatherInfo: WeatherData,
+    searchedText: String,
+    isValidSearch: Boolean,
+    onTextChanged: (String) -> Unit,
     onSearchClicked: (String) -> Unit
 ) {
     Column(modifier = Modifier.fillMaxSize()) {
@@ -90,14 +112,6 @@ fun WeatherInfo(
                 .fillMaxWidth()
                 .wrapContentHeight()
         ) {
-            Image(
-                painter = painterResource(id = R.color.teal_200),
-                contentDescription = null,
-                contentScale = ContentScale.Crop,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .matchParentSize()
-            )
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -111,19 +125,16 @@ fun WeatherInfo(
                     .wrapContentHeight()
             ) {
                 Spacer(modifier = Modifier.padding(top = 16.dp))
-                LocationSearch(onSearchClicked)
+                LocationSearch(isValidSearch, onTextChanged, onSearchClicked)
                 Spacer(modifier = Modifier.padding(top = 32.dp))
-                weatherInfo.main?.let {
-                    weatherInfo.weatherInfo?.let { it1 ->
-                        CurrentTemperature(
-                            it.temp,
-                            24,
-                            it.temp_max,
-                            it.temp_max,
-                            it1.icon
-                        )
-                    }
-                }
+                CurrentTemperature(
+                    name = weatherInfo.name,
+                    currentTemp = weatherInfo.temp.toInt(),
+                    description = weatherInfo.description,
+                    dailyHigh = weatherInfo.temp_max.toInt(),
+                    dailyLow = weatherInfo.temp_min.toInt(),
+                    weatherCode = weatherInfo.icon
+                )
                 Spacer(modifier = Modifier.padding(top = 32.dp))
             }
         }
@@ -132,6 +143,8 @@ fun WeatherInfo(
 
 @Composable
 fun LocationSearch(
+    isValidSearch: Boolean,
+    onTextChanged: (String) -> Unit,
     onSearchClicked: (String) -> Unit
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
@@ -158,22 +171,24 @@ fun LocationSearch(
             value = searchText,
             onValueChange = {
                 searchText = it
+                onTextChanged(it)
             },
             keyboardOptions = KeyboardOptions(
-                keyboardType = KeyboardType.Decimal
+                keyboardType = KeyboardType.Text
             ),
             modifier = Modifier
                 .weight(1f)
                 .padding(horizontal = 5.dp)
                 .padding(bottom = 8.dp),
             shape = RoundedCornerShape(12.dp),
-            label = { Text("Location(lat, long)") }
+            label = { Text("Enter City") }
         )
         IconButton(
             onClick = {
                 keyboardController?.hide()
                 onSearchClicked(searchText)
             },
+            enabled = isValidSearch,
             modifier = Modifier
                 .padding(start = 8.dp)
                 .clip(CircleShape)
@@ -182,6 +197,10 @@ fun LocationSearch(
         ) {
             Icon(
                 imageVector = Icons.Filled.Search,
+                tint = if (isValidSearch) MaterialTheme.colorScheme.primary
+                else MaterialTheme.colorScheme.onSurface.copy(
+                    alpha = 0.4f
+                ),
                 contentDescription = stringResource(id = R.string.lbl_cd_search)
             )
         }
@@ -190,10 +209,11 @@ fun LocationSearch(
 
 @Composable
 fun CurrentTemperature(
-    currentTemp: Double,
-    currentFeelsLike: Int,
-    dailyHigh: Double,
-    dailyLow: Double,
+    name: String,
+    currentTemp: Int,
+    description: String,
+    dailyHigh: Int,
+    dailyLow: Int,
     weatherCode: String
 ) {
     Row(
@@ -246,7 +266,7 @@ fun CurrentTemperature(
                 ) {
                     AsyncImage(
                         model = ImageRequest.Builder(LocalContext.current)
-                            .data(String.format(GEO_BASE_URL,weatherCode))
+                            .data(String.format(Constants.ICON_URL,weatherCode))
                             .build(),
                         contentDescription = weatherCode,
                         contentScale = ContentScale.Crop,
@@ -268,9 +288,32 @@ fun CurrentTemperature(
             )
         }
 
+        Column(
+            horizontalAlignment = Alignment.End,
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f),
+        ) {
+
+            Text(
+                modifier = Modifier.padding(top = 2.dp),
+                text = name,
+                style = MaterialTheme.typography.titleLarge,
+                color = textColor
+            )
+
+            Text(
+                modifier = Modifier.padding(top = 2.dp),
+                text = description,
+                style = MaterialTheme.typography.bodySmall,
+                color = textColor
+            )
+        }
+
     }
 
 }
+
 
 @Preview(showBackground = true)
 @Composable
@@ -278,11 +321,17 @@ fun HomeScreenPreview() {
     BasicWeatherAppTheme {
         Column(Modifier.fillMaxSize()) {
             WeatherInfo(
-                weatherInfo = HomeScreenState(
-                    weatherInfo = Weather(icon = "01d", description = "Clear Sky"),
-                    main = Main( 198.2, 198.2, 198.2),
-                    cityName = "New York"
+                weatherInfo = WeatherData(
+                    name = "New York",
+                    temp = 20.0f,
+                    description = "Cloudy",
+                    temp_max = 25.0f,
+                    temp_min = 15.0f,
+                    icon = "01d"
                 ),
+                searchedText = "",
+                isValidSearch = false,
+                onTextChanged = {},
                 onSearchClicked = {}
             )
         }

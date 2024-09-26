@@ -1,18 +1,20 @@
 package com.gayathri.basicweatherapp.di
 
-import com.gayathri.basicweatherapp.data.network.ApiService
-import com.gayathri.basicweatherapp.repository.GeoRepository
-import com.gayathri.basicweatherapp.repository.WeatherRepository
-import com.gayathri.basicweatherapp.utils.Constants.BASE_URL
+import com.gayathri.basicweatherapp.utils.Constants
+import com.gayathri.basicweatherapp.network.WeatherApi
+import com.gayathri.basicweatherapp.domain.repo.WeatherRepositoryImpl
+import com.gayathri.basicweatherapp.domain.repo.WeatherRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import javax.inject.Singleton
-import okhttp3.OkHttpClient
+import java.util.Date
 import java.util.concurrent.TimeUnit
+import javax.inject.Singleton
 
 @InstallIn(SingletonComponent::class)
 @Module
@@ -20,30 +22,35 @@ object AppModule {
 
     @Singleton
     @Provides
-    fun getRetrofit(): ApiService {
+    fun getRetrofit(): WeatherApi {
+
+        val loggingInterceptor = HttpLoggingInterceptor().apply {
+            level = HttpLoggingInterceptor.Level.BODY
+        }
 
         val httpClient = OkHttpClient.Builder()
             .connectTimeout(1, TimeUnit.MINUTES)
             .readTimeout(1, TimeUnit.MINUTES)
+            .addInterceptor(loggingInterceptor)
             .build()
 
         return Retrofit.Builder()
             .client(httpClient)
-            .baseUrl(BASE_URL)
+            .baseUrl(Constants.BASE_URL)
             .addConverterFactory(GsonConverterFactory.create())
-            .build().create(ApiService::class.java)
+            .build().create(WeatherApi::class.java)
 
     }
 
     @Singleton
     @Provides
-    fun providesGeoRepository(api: ApiService): GeoRepository {
-        return GeoRepository(api)
+    fun getRepository(api: WeatherApi): WeatherRepository {
+        return WeatherRepositoryImpl(api)
     }
 
-    @Singleton
     @Provides
-    fun providesWeatherRepository(api: ApiService): WeatherRepository {
-        return WeatherRepository(api)
+    fun provideCurrentDate(): Date {
+        return Date()
     }
+
 }
